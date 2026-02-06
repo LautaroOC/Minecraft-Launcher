@@ -1,4 +1,4 @@
-package org.example;
+package dev.javaVersion;
 
 public class JavaVersion {
     private String component;

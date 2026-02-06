@@ -1,6 +1,4 @@
-package org.example;
-
-import java.util.ArrayList;
+package dev.downloads;
 
 public class Download {
     private DownloadObject client;

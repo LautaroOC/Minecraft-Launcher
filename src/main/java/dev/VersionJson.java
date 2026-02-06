@@ -1,11 +1,17 @@
-package org.example;
+package dev;
+
+import dev.arguments.Argument;
+import dev.downloads.Download;
+import dev.javaVersion.JavaVersion;
+import dev.libraries.Library;
+import dev.assetIndex.AssetIndex;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class VersionJson {
     private String id;
     private Argument arguments;
+    private AssetIndex assetIndex;
     private Download downloads;
     private ArrayList<Library> libraries;
     private String mainClass;
@@ -33,5 +39,9 @@ public class VersionJson {
 
     public Argument getArguments() {
         return arguments;
+    }
+
+    public AssetIndex getAssetIndex () {
+        return assetIndex;
     }
 }

@@ -1,4 +1,4 @@
-package org.example;
+package dev.libraries;
 
 public class Artifact {
 

@@ -1,4 +1,4 @@
-package org.example;
+package dev.libraries;
 
 import java.util.ArrayList;
 
@@ -6,7 +6,7 @@ public class Library {
 
     private String name;
     private LibraryDownloads downloads;
-    private ArrayList<Object> rules;
+    private ArrayList<Rule> rules;
 
     public String getName() {
         return name;
@@ -16,7 +16,7 @@ public class Library {
         return downloads;
     }
 
-    public ArrayList<Object> getRules() {
+    public ArrayList<Rule> getRules() {
         return rules;
     }
 

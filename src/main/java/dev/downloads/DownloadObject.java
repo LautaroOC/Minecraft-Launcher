@@ -1,4 +1,4 @@
-package org.example;
+package dev.downloads;
 
 public class DownloadObject {
     private String sha1;
