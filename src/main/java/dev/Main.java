@@ -14,6 +14,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,6 +29,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
 
         URL MOJANG_META_VERSION = new URL("https://piston-meta.mojang.com/v1/packages/a58855d96a196f67d2240cd903011463e73df88f/1.21.json");
@@ -290,11 +292,10 @@ public class Main {
             String downloadUrl = "https://resources.download.minecraft.net/";
             downloadUrl = downloadUrl.concat(dir + "/" + hash);
 
+            String pathname = assetObjectsPath + dir + "/" + hash;
             URL HASH_URL = new URL(downloadUrl);
-            try (InputStream hashAssetIn = HASH_URL.openStream()) {
-
-                File hashFile = new File(assetObjectsPath + dir + "/" + hash);
-                FileOutputStream fos = new FileOutputStream(hashFile);
+            try (InputStream hashAssetIn = HASH_URL.openStream();
+                 FileOutputStream fos = new FileOutputStream(pathname)) {
 
                 byte[] buffer = new byte[4096];
                 int len;
@@ -423,10 +424,22 @@ public class Main {
                 return false;
             }
             return true;
-        }
-        else {
+        } else {
             return false;
         }
+    }
+
+    public static void downloadFile(String path, String url) throws IOException {
+        URL missingFileUrl = new URL(url);
+        try (InputStream in = missingFileUrl.openStream();
+             FileOutputStream fos = new FileOutputStream(path)) {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = in.read(buffer)) != -1) {
+                fos.write(buffer, 0, len);
+            }
+        }
+        System.out.println("File download complete");
     }
 
 }
