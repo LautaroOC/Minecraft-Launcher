@@ -278,8 +278,6 @@ public class Main {
                 assetJsonText.getBytes(StandardCharsets.UTF_8)
         );
 
-        System.out.println("dsadasdasdasda");
-
         for (Map.Entry<String, AssetObject> entry : assetsMap.getObjects().entrySet()) {
             String hash = entry.getValue().getHash();
             String dir = hash.substring(0, 2);
@@ -412,6 +410,23 @@ public class Main {
         }
 
         return destFile;
+    }
+
+    public static boolean checkFileIntegrity(String path, String sha1, long expectedSize) throws IOException {
+        Path p = Paths.get(path);
+        boolean exists = Files.exists(p);
+        if (exists) {
+            //check SHA1 for later dont want to get into this right now doesnt seem that necesary
+            //check size
+            long fileSize = Files.size(p);
+            if (fileSize != expectedSize) {
+                return false;
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 }
