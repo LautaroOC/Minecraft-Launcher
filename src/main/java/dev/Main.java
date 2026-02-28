@@ -56,6 +56,11 @@ public class Main {
         String userHomePath = System.getProperty("user.home");
         String minecraftDir = ".minecraft";
         String minecraftPath = userHomePath + "/" + minecraftDir;
+
+
+        //Check if files already exist before downloading
+
+
         //Creating .minecraft
         boolean createMinecraftDirectory = new File(minecraftPath).mkdir();
 
@@ -441,5 +446,82 @@ public class Main {
         }
         System.out.println("File download complete");
     }
+
+    public static void assetsFilesIntegrity(String minecraftPath, Assets assets) throws IOException {
+
+        //No me gusta la logica para nada
+        //Debo de usar paths en ves de strings y path.resolve
+        //Pero la idea va por ahi
+        String assetsDir = minecraftPath + "/assets/";
+        String indexesDir = assetsDir + "/indexes";
+        String objectsDir = assetsDir + "/objects";
+
+        if (Files.exists(Paths.get(assetsDir))) {
+            if (Files.exists(Paths.get(indexesDir))) {
+                //check assets json
+            }
+            if (Files.exists(Paths.get(objectsDir))) {
+                //check assets hash dirs
+                for (Map.Entry<String, AssetObject> entry : assets.getObjects().entrySet()) {
+                    String hash = entry.getValue().getHash();
+                    String hashDirName = hash.substring(0, 2);
+                    String hashDir = objectsDir + "/" + hashDirName;
+                    long fileSize = entry.getValue().getSize();
+
+                    if (Files.exists(Paths.get(hashDir))) {
+                        //check that the assets are inside this dir
+                        String hashFileDir = hashDir + "/" + hash;
+                        Path hashFilePath = Paths.get(hashFileDir);
+                        if (Files.exists(hashFilePath)) {
+                            if (hash.equals(hashFilePath.getFileName())) {
+                                if (!(fileSize == Files.size(hashFilePath))) {
+                                    System.out.println("Assets hash file exists but different size");
+                                }
+                            } else {
+                                System.out.println("Hash exists but is named different");
+                            }
+                        } else {
+                            System.out.println("Hash file doesnt exist");
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    public static void checkVersionIntegrity(Path minecraftPath, VersionJson versionJson, Assets assets) throws IOException{
+        //All necessary directories paths
+        //ESTA TODO MAL EL DISEÑO PERO LA IDEA VA POR AHI
+        String assetsDir = minecraftPath + "/assets/";
+        //assets dirs
+        String indexesDir = assetsDir + "/indexes";
+        String objectsDir = assetsDir + "/objects";
+        String downloadsDir = minecraftPath + "/downloads";
+        String librariesDir = minecraftPath + "/libraries";
+        String logsDir = minecraftPath + "/logs";
+        String resourcepacksDir = minecraftPath + "/resourcepacks";
+        String savesDir = minecraftPath + "/saves";
+        String versionsDir = minecraftPath + "/versions";
+        //maybe options.txt
+
+        if (Files.exists(minecraftPath)) {
+
+                if (Files.exists(Paths.get(downloadsDir))) {
+                    if (Files.exists(Paths.get(librariesDir))) {
+                        if (Files.exists(Paths.get(logsDir)));
+                        if (Files.exists(Paths.get(resourcepacksDir))) {
+                            if (Files.exists(Paths.get(savesDir))) {
+                                if (Files.exists(Paths.get(versionsDir))) {
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 }
