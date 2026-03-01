@@ -32,188 +32,10 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        URL MOJANG_META_VERSION = new URL("https://piston-meta.mojang.com/v1/packages/a58855d96a196f67d2240cd903011463e73df88f/1.21.json");
-        BufferedReader in = new BufferedReader(new InputStreamReader(MOJANG_META_VERSION.openStream()));
-
-        String jsonText = "";
-        String input;
-        while ((input = in.readLine()) != null) {
-            jsonText = jsonText.concat(input);
-        }
-
-        System.out.println(jsonText);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        VersionJson versionJson = objectMapper.readValue(jsonText, VersionJson.class);
-
-        System.out.println("ID: " + versionJson.getId());
-        System.out.println("Arguments: " + "game: " + versionJson.getArguments().getGame() + "jvm: " + versionJson.getArguments().getJvm());
-        System.out.println("Downloads: " + versionJson.getDownloads().getClient());
-        System.out.println("Main class: " + versionJson.getMainClass());
-        System.out.println("Java version: " + versionJson.getJavaVersion().getMajorVersion());
-        System.out.println("Libraries: " + versionJson.getLibraries());
-
-        String userHomePath = System.getProperty("user.home");
-        String minecraftDir = ".minecraft";
-        String minecraftPath = userHomePath + "/" + minecraftDir;
 
 
-        //Check if files already exist before downloading
 
 
-        //Creating .minecraft
-        boolean createMinecraftDirectory = new File(minecraftPath).mkdir();
-
-        //clientDownloadURl
-        String downloadClientUrl = versionJson.getDownloads().getClient().getUrl();
-
-        //There is no path in the downloads.client in any of them at least in this version.
-        //Path is made by the launcher
-        String versionPath = minecraftPath + "/versions/";
-        //Versions directory creation
-        boolean createVersionsDirectory = new File(versionPath).mkdir();
-        //Creating the version directory
-        String versionDirectoryPath = versionPath + "/" + versionJson.getId();
-        boolean createVersionDirectory = new File(versionDirectoryPath).mkdir();
-        //Getting the clientFile
-        URL CLIENT_VERSION = new URL(downloadClientUrl);
-        ByteArrayOutputStream byteArrayOutputStreamClient = new ByteArrayOutputStream();
-        try (BufferedInputStream inputStreamClient =
-                     new BufferedInputStream((CLIENT_VERSION.openStream()))) {
-
-            int bytesRead = 0;
-            byte[] bytesArray = new byte[8192];
-            while ((bytesRead = inputStreamClient.read(bytesArray)) != -1) {
-                byteArrayOutputStreamClient.write(bytesArray, 0, bytesRead);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        byte[] clientBytes = byteArrayOutputStreamClient.toByteArray();
-        String versionClientPathString = versionDirectoryPath + "/" + "client-" + versionJson.getId() + ".jar";
-        Path versionClientPath = Paths.get(versionClientPathString);
-        Files.write(versionClientPath, clientBytes);
-
-
-        //Libraries path
-        String librariesPath = minecraftPath + "/libraries/";
-        boolean createLibrariesDirectory = new File(librariesPath).mkdir();
-        //How many libraries
-        ArrayList<Library> libraries = versionJson.getLibraries();
-        int librariesAmount = libraries.size();
-
-        //Getting all the attributes we will need for every single library
-        for (int i = 0; i < librariesAmount; i++) {
-            Library library = libraries.get(i);
-            String name = library.getName();
-            if (library.getDownloads().getArtifact() != null) {
-                Artifact artifact = library.getDownloads().getArtifact();
-                String artifactPathString = artifact.getPath();
-                String artifactSha1 = artifact.getSha1();
-                String artifactUrlString = artifact.getUrl();
-
-                URL artifactURL = new URL(artifactUrlString);
-                ByteArrayOutputStream byteArrayOutputStreamArtifact = new ByteArrayOutputStream();
-                try (BufferedInputStream bufferedInputStream =
-                             new BufferedInputStream(artifactURL.openStream())) {
-
-                    int bytesRead = 0;
-                    byte[] byteArray = new byte[8192];
-
-                    while ((bytesRead = bufferedInputStream.read(byteArray)) != -1) {
-                        byteArrayOutputStreamArtifact.write(byteArray, 0, bytesRead);
-                    }
-
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                String artifactPathStringInLibraries = librariesPath + artifactPathString;
-                Path artifactPath = Paths.get(artifactPathStringInLibraries);
-                Files.createDirectories(artifactPath.getParent());
-                byte[] artifactBytes = byteArrayOutputStreamArtifact.toByteArray();
-                Files.write(artifactPath, artifactBytes);
-            }
-        }
-
-        //Reformat of the Arguments
-        //Game
-        List<JsonNode> gameArgument = versionJson.getArguments().getGame();
-
-        Game game = new Game();
-
-        for (int i = 0; i < gameArgument.size(); i++) {
-            JsonNode object = gameArgument.get(i);
-
-            if (object.isTextual()) {
-                String value = object.stringValue();
-                game.addGameArgument(value);
-            } else if (object.isObject()) {
-
-                List<GameRule> rules = Arrays.asList(
-                        objectMapper.treeToValue(object.get("rules"), GameRule[].class)
-                );
-
-                List<String> finalValues = new ArrayList<>();
-                if (object.get("value").isArray()) {
-                    List<String> values = Arrays.asList(
-                            objectMapper.treeToValue(object.get("value"), String[].class)
-                    );
-                    finalValues.addAll(values);
-                } else if (object.get("value").isTextual()) {
-                    String value = objectMapper.treeToValue(object.get("value"), String.class);
-                    finalValues.add(value);
-                }
-
-                game.addGameArgumentObject(new GameArgumentObject(rules, finalValues));
-            }
-        }
-
-        //Jvm
-        List<JsonNode> jvmArgument = versionJson.getArguments().getJvm();
-        Jvm jvm = new Jvm();
-
-        for (int i = 0; i < jvmArgument.size(); i++) {
-
-            JsonNode argument = jvmArgument.get(i);
-
-            if (argument.isObject()) {
-
-                //Rules
-                JsonNode rulesJsonNode = argument.get("rules");
-                //Rules siempre viene en Array
-                List<JvmRule> finalRules = Arrays.asList(
-                        objectMapper.treeToValue(rulesJsonNode, JvmRule[].class)
-                );
-
-                //Value
-                JsonNode valueJsonNode = argument.get("value");
-                List<String> finalValue = new ArrayList<String>();
-
-                //Si el value viene en array
-                if (valueJsonNode.isArray()) {
-                    List<String> value = Arrays.asList(
-                            objectMapper.treeToValue(valueJsonNode, String[].class)
-                    );
-                    finalValue.addAll(value);
-                }
-                //Si el value viene solo en String
-                else if (valueJsonNode.isTextual()) {
-                    String value = objectMapper.treeToValue(valueJsonNode, String.class);
-                    finalValue.add(value);
-                }
-
-                //Resultado final para agregar a la lista de los argumentObject de un objecto Jvm
-                jvm.addArgumentObject(new JvmArgumentObject(finalRules, finalValue));
-
-                //Si el arguemento no es un objeto es un stringg
-            } else if (argument.isTextual()) {
-                String flag = objectMapper.treeToValue(argument, String.class);
-                //Agregar a la lista de flags del objeto jvm
-                jvm.addFlags(flag);
-            }
-        }
 
 
         //System.out.println(game.getArguments());
@@ -221,41 +43,7 @@ public class Main {
         //System.out.println("jvm flags: " +jvm.getFlags());
         //System.out.println("jvm objeto de rules y value: " +jvm.getArgumentObject());
 
-        //Creating the natives directory
-        String nativesDirPath = versionDirectoryPath + "/natives";
-        boolean creationNativesDirectory = new File(nativesDirPath).mkdir();
 
-        //Adding the natives into the directory
-        for (int i = 0; i < libraries.size(); i++) {
-            Library library = libraries.get(i);
-
-            if (library.getRules() != null) {
-                if (library.getName().contains("native") && (library.getRules().getFirst().getOs().getName().equals("linux"))) {
-                    String fileZipPath = librariesPath + library.getDownloads().getArtifact().getPath();
-                    File destFile = new File(nativesDirPath);
-
-                    ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZipPath));
-                    ZipEntry zipEntry;
-
-                    while ((zipEntry = zis.getNextEntry()) != null) {
-                        if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".so")) {
-                            File nativeFile = newFile(destFile, zipEntry);
-
-                            try (FileOutputStream fos = new FileOutputStream(nativeFile)) {
-                                byte[] buffer = new byte[4096];
-                                int len;
-                                while ((len = zis.read(buffer)) > 0) {
-                                    fos.write(buffer, 0, len);
-                                }
-                            }
-                        }
-                        zis.closeEntry();
-                    }
-                    zis.close();
-                }
-            }
-
-        }
 
 
         //Creating the assets directories
@@ -406,17 +194,7 @@ public class Main {
 
     }
 
-    public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
-        String fileName = new File(zipEntry.getName()).getName();
-        File destFile = new File(destinationDir, fileName);
-        String destDirPath = destinationDir.getCanonicalPath();
-        String destFilePath = destFile.getCanonicalPath();
-        if (!destFilePath.startsWith(destDirPath + File.separator)) {
-            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-        }
 
-        return destFile;
-    }
 
     public static boolean checkFileIntegrity(String path, String sha1, long expectedSize) throws IOException {
         Path p = Paths.get(path);
@@ -447,48 +225,50 @@ public class Main {
         System.out.println("File download complete");
     }
 
-    public static void assetsFilesIntegrity(String minecraftPath, Assets assets) throws IOException {
+    public static void minecraftIntegrity() {
 
-        //No me gusta la logica para nada
-        //Debo de usar paths en ves de strings y path.resolve
-        //Pero la idea va por ahi
-        String assetsDir = minecraftPath + "/assets/";
-        String indexesDir = assetsDir + "/indexes";
-        String objectsDir = assetsDir + "/objects";
+    }
 
-        if (Files.exists(Paths.get(assetsDir))) {
-            if (Files.exists(Paths.get(indexesDir))) {
-                //check assets json
-            }
-            if (Files.exists(Paths.get(objectsDir))) {
-                //check assets hash dirs
-                for (Map.Entry<String, AssetObject> entry : assets.getObjects().entrySet()) {
-                    String hash = entry.getValue().getHash();
-                    String hashDirName = hash.substring(0, 2);
-                    String hashDir = objectsDir + "/" + hashDirName;
-                    long fileSize = entry.getValue().getSize();
+    public static void assetsFilesIntegrity(Path minecraftPathRelative, Assets assets) throws IOException {
 
-                    if (Files.exists(Paths.get(hashDir))) {
-                        //check that the assets are inside this dir
-                        String hashFileDir = hashDir + "/" + hash;
-                        Path hashFilePath = Paths.get(hashFileDir);
-                        if (Files.exists(hashFilePath)) {
-                            if (hash.equals(hashFilePath.getFileName())) {
-                                if (!(fileSize == Files.size(hashFilePath))) {
-                                    System.out.println("Assets hash file exists but different size");
-                                }
-                            } else {
-                                System.out.println("Hash exists but is named different");
-                            }
-                        } else {
-                            System.out.println("Hash file doesnt exist");
+        Path assetsPath = Paths.get("assets");
+        Path assetsPathRelative = minecraftPathRelative.resolve(assetsPath);
+        Path indexesPath = Paths.get("indexes");
+        Path indexesPathRelative = assetsPathRelative.resolve(indexesPath);
+        Path objectsPath = Paths.get("objects");
+        Path objectsPathRelative = assetsPathRelative.resolve(objectsPath);
+
+        if (Files.exists(assetsPathRelative)) {
+
+        }
+        if (Files.exists(indexesPathRelative)) {
+            //check assets json
+        }
+        if (Files.exists(objectsPathRelative)) {
+            //check assets hash dirs
+            for (Map.Entry<String, AssetObject> entry : assets.getObjects().entrySet()) {
+                String hash = entry.getValue().getHash();
+                String hashName = hash.substring(0, 2);
+                Path hashDirName = Paths.get(hashName);
+                Path hashPathRelative = objectsPathRelative.resolve(hashDirName);
+                long fileSize = entry.getValue().getSize();
+
+                if (Files.exists(hashPathRelative)) {
+                    //check that the assets are inside this dir
+                    Path hashFileName = Paths.get(hash);
+                    Path hashFilePath = hashPathRelative.resolve(hashFileName);
+                    if (Files.exists(hashFilePath)) {
+                        if (!(fileSize == Files.size(hashFilePath))) {
+                            System.out.println("Assets hash file exists but different size");
                         }
+                    } else {
+                        System.out.println("Hash file doesnt exist");
                     }
-
                 }
             }
         }
     }
+
 
     public static void checkVersionIntegrity(Path minecraftPath, VersionJson versionJson, Assets assets) throws IOException{
         //All necessary directories paths
@@ -521,7 +301,6 @@ public class Main {
                 }
             }
         }
-    }
 
 
 }
