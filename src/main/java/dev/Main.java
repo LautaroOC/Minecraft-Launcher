@@ -32,6 +32,16 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        VersionDownloader versionDownloader = new VersionDownloader();
+        versionDownloader.downloadVersion();
+        versionDownloader.createDirectories();
+        versionDownloader.downloadClient();
+        versionDownloader.downloadLibraries();
+        versionDownloader.argumentsReformat();
+        versionDownloader.mapJvm();
+        versionDownloader.createNatives();
+        versionDownloader.downloadAssetIndex();
+        versionDownloader.commandBuilder();
 
     }
 

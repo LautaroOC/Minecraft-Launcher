@@ -36,9 +36,15 @@ public class VersionDownloader {
     private Path librariesDirPathRelative;
     private Path indexesDirPathRelative;
     private Path objectsDirPathRelative;
+    private Path clientVersionFilePath;
+    private Path nativesDirPathRelative;
+    private Path minecraftPathRelative;
+    private Path assetsDirPathRelative;
     private ArrayList<Library> libraries;
     private String assetsJsonText;
     private Assets assetsMap;
+    private Jvm jvm;
+    private Game game;
 
     public void downloadVersion() throws MalformedURLException, IOException {
         objectMapper = new ObjectMapper();
@@ -68,7 +74,7 @@ public class VersionDownloader {
 
         byte[] clientBytes = byteArrayOutputStreamClient.toByteArray();
         Path clientVersionFileName = Paths.get("client-" + versionJson.getId() + ".jar");
-        Path clientVersionFilePath = versionDirPathRelative.resolve(clientVersionFileName);
+        clientVersionFilePath = versionDirPathRelative.resolve(clientVersionFileName);
         Files.write(clientVersionFilePath, clientBytes);
 
     }
@@ -118,7 +124,7 @@ public class VersionDownloader {
         //Reformat of the Arguments
         List<JsonNode> gameArgument = versionJson.getArguments().getGame();
 
-        Game game = new Game();
+        game = new Game();
 
         for (int i = 0; i < gameArgument.size(); i++) {
             JsonNode object = gameArgument.get(i);
@@ -150,7 +156,7 @@ public class VersionDownloader {
 
     public void mapJvm() {
         List<JsonNode> jvmArgument = versionJson.getArguments().getJvm();
-        Jvm jvm = new Jvm();
+        jvm = new Jvm();
 
         for (int i = 0; i < jvmArgument.size(); i++) {
 
@@ -196,7 +202,7 @@ public class VersionDownloader {
 
     public void createNatives() throws IOException {
         Path nativesDirName = Paths.get("natives");
-        Path nativesDirPathRelative = versionDirPathRelative.resolve(nativesDirName);
+        nativesDirPathRelative = versionDirPathRelative.resolve(nativesDirName);
         Files.createDirectories(nativesDirPathRelative);
 
         //Adding the natives into the directory
@@ -278,7 +284,7 @@ public class VersionDownloader {
         System.out.println("finished downloading assets objects");
     }
 
-    public void commandBuilder() {
+    public void commandBuilder() throws IOException, InterruptedException {
         //Writing the java command.
         String JVM_FLAGS = "";
         String CLASSPATH = "";
@@ -300,7 +306,7 @@ public class VersionDownloader {
                 CLASSPATH += ":" + libraryPath;
             }
         }
-        CLASSPATH = CLASSPATH.concat(":" + versionClientPathString);
+        CLASSPATH = CLASSPATH.concat(":" + clientVersionFilePath.toString());
 
         //JVM FLAGS
         for (int i = 0; i < jvm.getFlags().size(); i++) {
@@ -308,7 +314,7 @@ public class VersionDownloader {
         }
 
         //Reemplazar por los valores necesarios
-        JVM_FLAGS = JVM_FLAGS.replace("${natives_directory}", nativesDirPath);
+        JVM_FLAGS = JVM_FLAGS.replace("${natives_directory}", nativesDirPathRelative.toString());
         JVM_FLAGS = JVM_FLAGS.replace("${launcher_name}", "Launcher");
         JVM_FLAGS = JVM_FLAGS.replace("${launcher_version}", "1");
         JVM_FLAGS = JVM_FLAGS.replace("${classpath}", CLASSPATH);
@@ -325,8 +331,8 @@ public class VersionDownloader {
         //Reemplazar por los valores necesarios para los game arguments
         GAME_ARGS = GAME_ARGS.replace("${auth_player_name}", "Steve");
         GAME_ARGS = GAME_ARGS.replace("${version_name}", versionJson.getId());
-        GAME_ARGS = GAME_ARGS.replace("${game_directory}", minecraftPath);
-        GAME_ARGS = GAME_ARGS.replace("${assets_root}", assetsStringPath); // no tengo dir de assests todavia.
+        GAME_ARGS = GAME_ARGS.replace("${game_directory}", minecraftPathRelative.toString());
+        GAME_ARGS = GAME_ARGS.replace("${assets_root}", assetsDirPathRelative.toString());
         GAME_ARGS = GAME_ARGS.replace("${assets_index_name}", versionJson.getId());
         GAME_ARGS = GAME_ARGS.replace("${auth_uuid}", "00000000-0000-0000-0000-000000000000");
         GAME_ARGS = GAME_ARGS.replace("${auth_access_token}", "0");
@@ -349,7 +355,7 @@ public class VersionDownloader {
 
         ProcessBuilder pb = new ProcessBuilder(command);
 
-        pb.directory(new File(minecraftPath));
+        pb.directory(new File(minecraftPathRelative.toString()));
 
         pb.redirectErrorStream(true);
         System.out.println("COMMAND:");
@@ -386,7 +392,7 @@ public class VersionDownloader {
         String userHomeName = System.getProperty("user.home");
         Path userHomePath = Paths.get(userHomeName);
         Path minecraftDir = Paths.get(".minecraft");
-        Path minecraftPathRelative = userHomePath.resolve(minecraftDir);
+        minecraftPathRelative = userHomePath.resolve(minecraftDir);
 
         Path versionsDirName = Paths.get("versions");
         versionsDirPathRelative = minecraftPathRelative.resolve(versionsDirName);
@@ -395,7 +401,7 @@ public class VersionDownloader {
         Path librariesDirName = Paths.get("libraries");
         librariesDirPathRelative = minecraftPathRelative.resolve(librariesDirName);
         Path assetsDirName = Paths.get("assets");
-        Path assetsDirPathRelative = librariesDirPathRelative.resolve(assetsDirName);
+        assetsDirPathRelative = librariesDirPathRelative.resolve(assetsDirName);
         Path indexesDirName = Paths.get("indexes");
         indexesDirPathRelative = assetsDirPathRelative.resolve(indexesDirName);
         Path objectsDirName = Paths.get("objects");
