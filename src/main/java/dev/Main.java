@@ -41,11 +41,11 @@ public class Main {
         versionDownloader.mapJvm();
         versionDownloader.createNatives();
         versionDownloader.downloadAssetIndex();
+        versionDownloader.createAssetsIndexJson();
+        versionDownloader.downloadAssetsObjects();
         versionDownloader.commandBuilder();
 
     }
-
-
 
     public static boolean checkFileIntegrity(String path, String sha1, long expectedSize) throws IOException {
         Path p = Paths.get(path);

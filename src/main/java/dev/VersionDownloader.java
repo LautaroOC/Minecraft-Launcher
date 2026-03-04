@@ -20,6 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -225,6 +227,7 @@ public class VersionDownloader {
                                 throw new IOException("Bad zip entry: " + zipEntry.getName());
                             }
 
+                            Files.createDirectories(target.getParent());
                             OutputStream out = Files.newOutputStream(target);
                             zis.transferTo(out);
                         }
@@ -239,13 +242,15 @@ public class VersionDownloader {
         //Getting the assetIndex
         String input;
         String assetURL = versionJson.getAssetIndex().getUrl();
+        assetsJsonText = "";
         URL ASSETS_URL = new URL(assetURL);
-        BufferedReader assetIn = new BufferedReader(new InputStreamReader(ASSETS_URL.openStream()));
 
-        while ((input = assetIn.readLine()) != null) {
-            assetsJsonText = assetsJsonText.concat(input);
+        try (BufferedReader assetIn = new BufferedReader(new InputStreamReader(ASSETS_URL.openStream()))) {
+            while ((input = assetIn.readLine()) != null) {
+                assetsJsonText = assetsJsonText.concat(input);
+            }
+
         }
-
         //Parsing the asset to JSON.
         assetsMap = objectMapper.readValue(assetsJsonText, Assets.class);
     }
@@ -253,13 +258,13 @@ public class VersionDownloader {
     public void createAssetsIndexJson() throws IOException {
         //Saving the json into the index dir
         Files.write(
-                Paths.get(indexesDirPathRelative + versionJson.getId() + ".json"),
+                Paths.get(indexesDirPathRelative.toString() + versionJson.getId() + ".json"),
                 assetsJsonText.getBytes(StandardCharsets.UTF_8)
         );
 
     }
 
-    public void DownloadAssetsObjects() throws IOException {
+    public void downloadAssetsObjects() throws IOException {
         for (Map.Entry<String, AssetObject> entry : assetsMap.getObjects().entrySet()) {
             String hash = entry.getValue().getHash();
             String dir = hash.substring(0, 2);
@@ -274,11 +279,13 @@ public class VersionDownloader {
             downloadUrl = downloadUrl.concat(dir + "/" + hash);
 
             URL HASH_URL = new URL(downloadUrl);
-            try (InputStream hashAssetIn = HASH_URL.openStream();
-                 OutputStream out = Files.newOutputStream(hashObjectsDirPathRelative)) {
-                hashAssetIn.transferTo(out);
+            if (!Files.exists(hashObjectsDirPathRelative.resolve(hash))) {
+                try (InputStream hashAssetIn = HASH_URL.openStream();
+                     OutputStream out = Files.newOutputStream(Files.createFile(hashObjectsDirPathRelative.resolve(hash)))) {
+                    hashAssetIn.transferTo(out);
+                }
+                System.out.println("downloading each asset object...");
             }
-            System.out.println("downloading each asset object...");
         }
 
         System.out.println("finished downloading assets objects");
@@ -412,6 +419,9 @@ public class VersionDownloader {
         Files.createDirectories(versionsDirPathRelative);
         Files.createDirectories(librariesDirPathRelative);
         Files.createDirectories(versionDirPathRelative);
+        Files.createDirectories(assetsDirPathRelative);
+        Files.createDirectories(indexesDirPathRelative);
+        Files.createDirectories(objectsDirPathRelative);
 
     }
 
