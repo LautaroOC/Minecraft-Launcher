@@ -43,7 +43,16 @@ public class Main {
         versionDownloader.downloadAssetIndex();
         versionDownloader.createAssetsIndexJson();
         versionDownloader.downloadAssetsObjects();
-        versionDownloader.commandBuilder();
+
+        LauncherBuilder launcherBuilder = new LauncherBuilder(versionDownloader.getLibrariesDirPathRelative(), versionDownloader.getAssetsDirPathRelative(),
+                versionDownloader.getClientVersionFilePath(), versionDownloader.getNativesDirPathRelative(), versionDownloader.getMinecraftPathRelative(),
+                versionDownloader.getGame(), versionDownloader.getJvm(), versionDownloader.getLibraries(), versionDownloader.getVersionJson());
+
+        launcherBuilder.classpathBuilder();
+        launcherBuilder.jvmflagsBuilder();
+        launcherBuilder.mainclassBuilder();
+        launcherBuilder.gameargsBuilder();
+        launcherBuilder.commandBuilder();
 
     }
 

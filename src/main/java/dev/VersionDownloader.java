@@ -42,6 +42,67 @@ public class VersionDownloader {
     private Path nativesDirPathRelative;
     private Path minecraftPathRelative;
     private Path assetsDirPathRelative;
+
+    public VersionJson getVersionJson() {
+        return versionJson;
+    }
+
+    public Path getVersionsDirPathRelative() {
+        return versionsDirPathRelative;
+    }
+
+    public Path getVersionDirPathRelative() {
+        return versionDirPathRelative;
+    }
+
+    public Path getLibrariesDirPathRelative() {
+        return librariesDirPathRelative;
+    }
+
+    public Path getIndexesDirPathRelative() {
+        return indexesDirPathRelative;
+    }
+
+    public Path getObjectsDirPathRelative() {
+        return objectsDirPathRelative;
+    }
+
+    public Path getClientVersionFilePath() {
+        return clientVersionFilePath;
+    }
+
+    public Path getNativesDirPathRelative() {
+        return nativesDirPathRelative;
+    }
+
+    public Path getMinecraftPathRelative() {
+        return minecraftPathRelative;
+    }
+
+    public Path getAssetsDirPathRelative() {
+        return assetsDirPathRelative;
+    }
+
+    public ArrayList<Library> getLibraries() {
+        return libraries;
+    }
+
+    public String getAssetsJsonText() {
+        return assetsJsonText;
+    }
+
+    public Assets getAssetsMap() {
+        return assetsMap;
+    }
+
+    public Jvm getJvm() {
+        return jvm;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
     private ArrayList<Library> libraries;
     private String assetsJsonText;
     private Assets assetsMap;
@@ -292,101 +353,6 @@ public class VersionDownloader {
         System.out.println("finished downloading assets objects");
     }
 
-    public void commandBuilder() throws IOException, InterruptedException {
-        //Writing the java command.
-        String JVM_FLAGS = "";
-        String CLASSPATH = "";
-        String MAIN_CLASS = "";
-        String GAME_ARGS = "";
-
-        //Classpath
-        List<String> librariesClassPaths = new ArrayList<>();
-        for (int i = 0; i < libraries.size(); i++) {
-            Library library = libraries.get(i);
-            Path librariesPath = librariesDirPathRelative.resolve(library.getDownloads().getArtifact().getPath());
-            String name = library.getName();
-
-            boolean isPlatformSpecific =
-                    name.contains("natives-")
-                            || name.contains("linux")
-                            || name.contains("macos")
-                            || name.contains("windows");
-
-            if (!isPlatformSpecific) {
-                //CLASSPATH += ":" + librariePath.toString();
-                librariesClassPaths.add(librariesPath.toString());
-            }
-        }
-        librariesClassPaths.add(clientVersionFilePath.toString());
-        CLASSPATH = String.join(":", librariesClassPaths);
-
-        //JVM FLAGS
-        for (int i = 0; i < jvm.getFlags().size(); i++) {
-            JVM_FLAGS = JVM_FLAGS.concat(" " + jvm.getFlags().get(i));
-        }
-
-        //Reemplazar por los valores necesarios
-        JVM_FLAGS = JVM_FLAGS.replace("${natives_directory}", nativesDirPathRelative.toString());
-        JVM_FLAGS = JVM_FLAGS.replace("${launcher_name}", "Launcher");
-        JVM_FLAGS = JVM_FLAGS.replace("${launcher_version}", "1");
-        JVM_FLAGS = JVM_FLAGS.replace("${classpath}", CLASSPATH);
-        System.out.println("JVM FLAGS:");
-        System.out.println(JVM_FLAGS);
-
-        //MAIN CLASS
-        MAIN_CLASS = MAIN_CLASS.concat(versionJson.getMainClass());
-
-        //GAME ARGS
-        for (int i = 0; i < game.getArguments().size(); i++) {
-            GAME_ARGS = GAME_ARGS.concat(" " + game.getArguments().get(i));
-        }
-        //Reemplazar por los valores necesarios para los game arguments
-        GAME_ARGS = GAME_ARGS.replace("${auth_player_name}", "Steve");
-        GAME_ARGS = GAME_ARGS.replace("${version_name}", versionJson.getId());
-        GAME_ARGS = GAME_ARGS.replace("${game_directory}", minecraftPathRelative.toString());
-        GAME_ARGS = GAME_ARGS.replace("${assets_root}", assetsDirPathRelative.toString());
-        GAME_ARGS = GAME_ARGS.replace("${assets_index_name}", versionJson.getId());
-        GAME_ARGS = GAME_ARGS.replace("${auth_uuid}", "00000000-0000-0000-0000-000000000000");
-        GAME_ARGS = GAME_ARGS.replace("${auth_access_token}", "0");
-        GAME_ARGS = GAME_ARGS.replace("${user_type}", "legacy");
-        GAME_ARGS = GAME_ARGS.replace("${version_type}", "release");
-
-
-        //El comando completo hardocdeo el argumento de jvm para linux por ahora y no tengo en cuenta ninguna de las rules en los argumentos.
-        //String javaCommand = "java -Xss1M" + JVM_FLAGS + MAIN_CLASS + GAME_ARGS;
-
-        List<String> command = new ArrayList<>();
-        command.add("java");
-        command.add("-Xss1M");
-
-        command.addAll(Arrays.asList(JVM_FLAGS.trim().split("\\s+")));
-
-        command.add(MAIN_CLASS);
-
-        command.addAll(Arrays.asList(GAME_ARGS.trim().split("\\s+")));
-
-        ProcessBuilder pb = new ProcessBuilder(command);
-
-        pb.directory(new File(minecraftPathRelative.toString()));
-
-        pb.redirectErrorStream(true);
-        System.out.println("COMMAND:");
-        for (String c : command) {
-            System.out.println(c);
-        }
-        Process process = pb.start();
-
-        try (BufferedReader bufferedReader =
-                     new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                System.out.println("[MC] " + line);
-            }
-        }
-
-        int exitCode = process.waitFor();
-        System.out.println("Minecraft exited with code " + exitCode);
-    }
 
     public File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
         String fileName = new File(zipEntry.getName()).getName();
