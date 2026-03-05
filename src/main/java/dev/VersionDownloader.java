@@ -257,8 +257,9 @@ public class VersionDownloader {
 
     public void createAssetsIndexJson() throws IOException {
         //Saving the json into the index dir
+        String indexFileName = versionJson.getId() + ".json";
         Files.write(
-                Paths.get(indexesDirPathRelative.toString() + versionJson.getId() + ".json"),
+                indexesDirPathRelative.resolve(indexFileName),
                 assetsJsonText.getBytes(StandardCharsets.UTF_8)
         );
 
@@ -299,10 +300,12 @@ public class VersionDownloader {
         String GAME_ARGS = "";
 
         //Classpath
+        List<String> librariesClassPaths = new ArrayList<>();
         for (int i = 0; i < libraries.size(); i++) {
             Library library = libraries.get(i);
-            String libraryPath = librariesDirPathRelative + library.getDownloads().getArtifact().getPath();
+            Path librariesPath = librariesDirPathRelative.resolve(library.getDownloads().getArtifact().getPath());
             String name = library.getName();
+
             boolean isPlatformSpecific =
                     name.contains("natives-")
                             || name.contains("linux")
@@ -310,10 +313,12 @@ public class VersionDownloader {
                             || name.contains("windows");
 
             if (!isPlatformSpecific) {
-                CLASSPATH += ":" + libraryPath;
+                //CLASSPATH += ":" + librariePath.toString();
+                librariesClassPaths.add(librariesPath.toString());
             }
         }
-        CLASSPATH = CLASSPATH.concat(":" + clientVersionFilePath.toString());
+        librariesClassPaths.add(clientVersionFilePath.toString());
+        CLASSPATH = String.join(":", librariesClassPaths);
 
         //JVM FLAGS
         for (int i = 0; i < jvm.getFlags().size(); i++) {
@@ -408,7 +413,7 @@ public class VersionDownloader {
         Path librariesDirName = Paths.get("libraries");
         librariesDirPathRelative = minecraftPathRelative.resolve(librariesDirName);
         Path assetsDirName = Paths.get("assets");
-        assetsDirPathRelative = librariesDirPathRelative.resolve(assetsDirName);
+        assetsDirPathRelative = minecraftPathRelative.resolve(assetsDirName);
         Path indexesDirName = Paths.get("indexes");
         indexesDirPathRelative = assetsDirPathRelative.resolve(indexesDirName);
         Path objectsDirName = Paths.get("objects");
