@@ -9,7 +9,8 @@ public class Issue {
     private String url;
     private Path pathIssue;
 
-    public Issue(String issueName, String sha1, long size, String url, Path pathIssue) {
+    public Issue(IssueType issueType, String sha1, long size, String url, Path pathIssue) {
+        this.issueType = issueType;
         this.sha1 = sha1;
         this.size = size;
         this.url = url;

@@ -3,13 +3,13 @@ package dev;
 import java.util.ArrayList;
 
 public class IssueReport {
-    private ArrayList<String> issues;
+    private ArrayList<Issue> issues;
 
     public IssueReport() {
         issues = new ArrayList<>();
     }
 
-    public void addIssue(String issue) {
+    public void addIssue(Issue issue) {
         issues.add(issue);
     }
 }

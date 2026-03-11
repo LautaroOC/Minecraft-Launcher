@@ -41,10 +41,11 @@ public class IntegrityChecker {
         Path objectsPathRelative = assetsPathRelative.resolve(objectsPath);
 
         if (!Files.exists(assetsPathRelative)) {
-            issueReport.addIssue();
+            issueReport.addIssue(new Issue(IssueType.MISSING_DIRECTORY, "No hash its a directory", 0, "No url its a directory", assetsPathRelative));
         }
-        if (Files.exists(indexesPathRelative)) {
+        if (!Files.exists(indexesPathRelative)) {
             //check assets json
+            issueReport.addIssue(new Issue(IssueType.MISSING_DIRECTORY, "No hash its a directory", 0, "No url its a directory", assetsPathRelative));
         }
         if (Files.exists(objectsPathRelative)) {
             //check assets hash dirs
@@ -54,6 +55,9 @@ public class IntegrityChecker {
                 Path hashDirName = Paths.get(hashName);
                 Path hashPathRelative = objectsPathRelative.resolve(hashDirName);
                 long fileSize = entry.getValue().getSize();
+                //https://resources.download.minecraft.net/<first2>/<fullhash>
+                String downloadUrl = "https://resources.download.minecraft.net/";
+                downloadUrl = downloadUrl.concat(objectsPathRelative + "/" + hash);
 
                 if (Files.exists(hashPathRelative)) {
                     //check that the assets are inside this dir
@@ -62,12 +66,16 @@ public class IntegrityChecker {
                     if (Files.exists(hashFilePath)) {
                         if (!(fileSize == Files.size(hashFilePath))) {
                             System.out.println("Assets hash file exists but different size");
+                            issueReport.addIssue(new Issue(IssueType.SIZE_MISMATCH, "No sha1 on objects", entry.getValue().getSize(), downloadUrl, hashFilePath);
                         }
                     } else {
                         System.out.println("Hash file doesnt exist");
                     }
                 }
             }
+        }
+        else {
+            issueReport.addIssue(new Issue(IssueType.MISSING_DIRECTORY, "No hash its a directory", 0, "No url its a directory", assetsPathRelative));
         }
     }
     public void checkVersionIntegrity(Path minecraftPath, VersionJson versionJson, Assets assets) throws IOException{
