@@ -8,6 +8,7 @@ import dev.arguments.jvm.JvmArgumentObject;
 import dev.arguments.jvm.JvmRule;
 import dev.assetIndex.AssetObject;
 import dev.assetIndex.Assets;
+import dev.downloads.DownloadObject;
 import dev.libraries.Artifact;
 import dev.libraries.Library;
 import tools.jackson.databind.JsonNode;
@@ -42,6 +43,12 @@ public class VersionDownloader {
     private Path nativesDirPathRelative;
     private Path minecraftPathRelative;
     private Path assetsDirPathRelative;
+    private ArrayList<Library> libraries;
+    private String assetsJsonText;
+    private Assets assetsMap;
+    private Jvm jvm;
+    private Game game;
+
 
     public VersionJson getVersionJson() {
         return versionJson;
@@ -103,11 +110,6 @@ public class VersionDownloader {
         return game;
     }
 
-    private ArrayList<Library> libraries;
-    private String assetsJsonText;
-    private Assets assetsMap;
-    private Jvm jvm;
-    private Game game;
 
     public void downloadVersion() throws MalformedURLException, IOException {
         objectMapper = new ObjectMapper();
@@ -263,6 +265,26 @@ public class VersionDownloader {
         }
     }
 
+    public void downloadNatives() throws MalformedURLException, IOException {
+        for (Library library : libraries) {
+            if (library.getNatives() != null) {
+                if (library.getNatives().containsKey("linux")) {
+                    Map<String, DownloadObject> classifiers = library.getDownloads().getClassifiers();
+                    if (classifiers.containsKey("natives-linux")) {
+                        DownloadObject natives = classifiers.get("natives-linux");
+                        Path nativesLibrariesPathRelative = librariesDirPathRelative.resolve(natives.getPath());
+                        String urlString = natives.getUrl();
+                        URL URL = new URL(urlString);
+                        try (InputStream inputStream = URL.openStream()) {
+                            Files.createDirectories(nativesLibrariesPathRelative.getParent());
+                            Files.copy(inputStream, nativesLibrariesPathRelative);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void createNatives() throws IOException {
         Path nativesDirName = Paths.get("natives");
         nativesDirPathRelative = versionDirPathRelative.resolve(nativesDirName);
@@ -271,6 +293,13 @@ public class VersionDownloader {
         //Adding the natives into the directory
         for (int i = 0; i < libraries.size(); i++) {
             Library library = libraries.get(i);
+
+            int minecraftVersion = Integer.parseInt(versionJson.getAssetsVersion());
+            if (library.getNatives() != null) {
+               if (library.getNatives().containsKey("linux")) {
+
+               }
+            }
 
             if (library.getRules() != null) {
                 if (library.getName().contains("native") && (library.getRules().getFirst().getOs().getName().equals("linux"))) {

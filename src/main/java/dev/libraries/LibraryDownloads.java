@@ -12,6 +12,11 @@ public class LibraryDownloads {
     public Artifact getArtifact() {
         return artifact;
     }
+
+    public Map<String, DownloadObject> getClassifiers() {
+        return classifiers;
+    }
+
     @Override
     public String toString() {
        return artifact.toString();

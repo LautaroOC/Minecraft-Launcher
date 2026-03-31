@@ -18,6 +18,10 @@ public class Library {
         return downloads;
     }
 
+    public Map<String, String> getNatives() {
+        return natives;
+    }
+
     public ArrayList<Rule> getRules() {
         return rules;
     }

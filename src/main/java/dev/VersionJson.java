@@ -10,12 +10,17 @@ import java.util.ArrayList;
 
 public class VersionJson {
     private String id;
+    private String assets;
     private Argument arguments;
     private AssetIndex assetIndex;
     private Download downloads;
     private ArrayList<Library> libraries;
     private String mainClass;
     private JavaVersion javaVersion;
+
+    public String getAssetsVersion() {
+        return assets;
+    }
 
     public Download getDownloads() {
         return downloads;
