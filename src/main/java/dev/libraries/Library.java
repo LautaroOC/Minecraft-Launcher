@@ -1,12 +1,14 @@
 package dev.libraries;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Library {
 
     private String name;
     private LibraryDownloads downloads;
     private ArrayList<Rule> rules;
+    private Map<String, String> natives;
 
     public String getName() {
         return name;

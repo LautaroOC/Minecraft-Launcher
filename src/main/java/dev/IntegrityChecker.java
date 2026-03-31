@@ -66,7 +66,7 @@ public class IntegrityChecker {
                     if (Files.exists(hashFilePath)) {
                         if (!(fileSize == Files.size(hashFilePath))) {
                             System.out.println("Assets hash file exists but different size");
-                            issueReport.addIssue(new Issue(IssueType.SIZE_MISMATCH, "No sha1 on objects", entry.getValue().getSize(), downloadUrl, hashFilePath);
+                            issueReport.addIssue(new Issue(IssueType.SIZE_MISMATCH, "No sha1 on objects", entry.getValue().getSize(), downloadUrl, hashFilePath));
                         }
                     } else {
                         System.out.println("Hash file doesnt exist");

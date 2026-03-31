@@ -1,32 +1,7 @@
 package dev;
 
-import dev.arguments.game.Game;
-import dev.arguments.game.GameArgumentObject;
-import dev.arguments.jvm.Jvm;
-import dev.arguments.jvm.JvmArgumentObject;
-import dev.arguments.game.GameRule;
-import dev.arguments.jvm.JvmRule;
-import dev.assetIndex.AssetObject;
-import dev.assetIndex.Assets;
-import dev.libraries.Artifact;
-import dev.libraries.Library;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.FieldPosition;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class Main {
 
