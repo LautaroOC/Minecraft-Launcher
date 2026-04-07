@@ -11,6 +11,7 @@ import dev.assetIndex.Assets;
 import dev.downloads.DownloadObject;
 import dev.libraries.Artifact;
 import dev.libraries.Library;
+import dev.libraries.Rule;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -111,9 +112,9 @@ public class VersionDownloader {
     }
 
 
-    public void downloadVersion() throws MalformedURLException, IOException {
+    public void downloadVersion(String url) throws MalformedURLException, IOException {
         objectMapper = new ObjectMapper();
-        URL MOJANG_META_VERSION = new URL("https://piston-meta.mojang.com/v1/packages/a58855d96a196f67d2240cd903011463e73df88f/1.21.json");
+        URL MOJANG_META_VERSION = new URL(url);
         try (InputStream in = MOJANG_META_VERSION.openStream()) {
             versionJson = objectMapper.readValue(in, VersionJson.class);
         }
@@ -125,7 +126,7 @@ public class VersionDownloader {
         String downloadClientUrl = versionJson.getDownloads().getClient().getUrl();
         URL CLIENT_VERSION = new URL(downloadClientUrl);
         ByteArrayOutputStream byteArrayOutputStreamClient = new ByteArrayOutputStream();
-        try (InputStream inputStreamClient  = CLIENT_VERSION.openStream()) {
+        try (InputStream inputStreamClient = CLIENT_VERSION.openStream()) {
 
             int bytesRead = 0;
             byte[] bytesArray = new byte[8192];
@@ -182,6 +183,9 @@ public class VersionDownloader {
                 Files.write(artifactLibrariesPathRelative, artifactBytes);
             }
         }
+        System.out.println("Descargando natives");
+        downloadNatives();
+        System.out.println("Descarga de natives finalizada");
     }
 
     public void argumentsReformat() {
@@ -289,46 +293,65 @@ public class VersionDownloader {
         Path nativesDirName = Paths.get("natives");
         nativesDirPathRelative = versionDirPathRelative.resolve(nativesDirName);
         Files.createDirectories(nativesDirPathRelative);
-
         //Adding the natives into the directory
         for (int i = 0; i < libraries.size(); i++) {
             Library library = libraries.get(i);
-
-            int minecraftVersion = Integer.parseInt(versionJson.getAssetsVersion());
+            //int minecraftVersion = Integer.parseInt(versionJson.getAssetsVersion());
+            System.out.println(library.getNatives());
             if (library.getNatives() != null) {
-               if (library.getNatives().containsKey("linux")) {
-
-               }
+                System.out.println("Descomprimiendo natives...");
+                if (library.getNatives().containsKey("linux")) {
+                    Map<String, DownloadObject> classifiers = library.getDownloads().getClassifiers();
+                    DownloadObject natives = classifiers.get("natives-linux");
+                    if (natives != null && natives.getPath() != null) {
+                        Path fileZipPath = librariesDirPathRelative.resolve(natives.getPath());
+                        if (Files.exists(fileZipPath)) {
+                            ZipInputStream zis = new ZipInputStream(Files.newInputStream(fileZipPath));
+                            ZipEntry zipEntry;
+                            while ((zipEntry = zis.getNextEntry()) != null) {
+                                if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".so")) {
+                                    Path target = nativesDirPathRelative.resolve(zipEntry.getName()).normalize();
+                                    if (!target.startsWith(nativesDirPathRelative)) {
+                                        throw new IOException("Bad zip entry: " + zipEntry.getName());
+                                    }
+                                    Files.createDirectories(target.getParent());
+                                    try (OutputStream out = Files.newOutputStream(target)) {
+                                        zis.transferTo(out);
+                                    }
+                                }
+                                zis.closeEntry();
+                            }
+                        }
+                    }
+                }
             }
-
             if (library.getRules() != null) {
                 if (library.getName().contains("native") && (library.getRules().getFirst().getOs().getName().equals("linux"))) {
                     Path fileZipPath = librariesDirPathRelative.resolve(library.getDownloads().getArtifact().getPath());
-
                     ZipInputStream zis = new ZipInputStream(Files.newInputStream(fileZipPath));
                     ZipEntry zipEntry;
-
                     while ((zipEntry = zis.getNextEntry()) != null) {
                         if (!zipEntry.isDirectory() && zipEntry.getName().endsWith(".so")) {
                             //Im getting all the name with the path i think. Not just the fileName
                             Path target = nativesDirPathRelative.resolve(zipEntry.getName()).normalize();
-
                             if (!target.startsWith(nativesDirPathRelative)) {
                                 throw new IOException("Bad zip entry: " + zipEntry.getName());
                             }
-
                             Files.createDirectories(target.getParent());
-                            OutputStream out = Files.newOutputStream(target);
-                            zis.transferTo(out);
+                            try (OutputStream out = Files.newOutputStream(target)) {
+                                zis.transferTo(out);
+                            }
+
                         }
                         zis.closeEntry();
                     }
                 }
             }
         }
+        System.out.println("Se descomprimieron todos los natives");
     }
 
-    public void downloadAssetIndex() throws MalformedURLException, IOException{
+    public void downloadAssetIndex() throws MalformedURLException, IOException {
         //Getting the assetIndex
         String input;
         String assetURL = versionJson.getAssetIndex().getUrl();

@@ -3,6 +3,7 @@ package dev;
 import dev.arguments.game.Game;
 import dev.arguments.jvm.Jvm;
 import dev.libraries.Library;
+import dev.libraries.Rule;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,19 +46,31 @@ public class LauncherBuilder {
         List<String> librariesClassPaths = new ArrayList<>();
         for (int i = 0; i < libraries.size(); i++) {
             Library library = libraries.get(i);
+
             Path librariesPath = librariesDirPathRelative.resolve(library.getDownloads().getArtifact().getPath());
             String name = library.getName();
 
-            boolean isPlatformSpecific =
-                    name.contains("natives-")
-                            || name.contains("linux")
-                            || name.contains("macos")
-                            || name.contains("windows");
-
-            if (!isPlatformSpecific) {
-                //CLASSPATH += ":" + librariePath.toString();
+            if ((library.getRules() == null) ||
+                    (library.getRules().getFirst().getAction().equals("allow")) &&
+                            (library.getRules().getLast().getAction().equals("disallow")) &&
+                            (library.getRules().getLast().getOs().getName().equals("osx"))) {
                 librariesClassPaths.add(librariesPath.toString());
             }
+            /*
+            for 1.21
+            else {
+                boolean isPlatformSpecific =
+                        name.contains("natives-")
+                                || name.contains("linux")
+                                || name.contains("macos")
+                                || name.contains("windows");
+
+                if (!isPlatformSpecific) {
+                    //CLASSPATH += ":" + librariePath.toString();
+                    librariesClassPaths.add(librariesPath.toString());
+                }
+            }
+             */
         }
         librariesClassPaths.add(clientVersionFilePath.toString());
         CLASSPATH = String.join(":", librariesClassPaths);
@@ -104,8 +117,9 @@ public class LauncherBuilder {
     public void commandBuilder() throws IOException, InterruptedException {
         //El comando completo hardocdeo el argumento de jvm para linux por ahora y no tengo en cuenta ninguna de las rules en los argumentos.
         //String javaCommand = "java -Xss1M" + JVM_FLAGS + MAIN_CLASS + GAME_ARGS;
+        String javaPath = System.getProperty("user.home") + "/.sdkman/candidates/java/17.0.18-tem/bin/java";
         List<String> command = new ArrayList<>();
-        command.add("java");
+        command.add(javaPath);
         command.add("-Xss1M");
 
         command.addAll(Arrays.asList(JVM_FLAGS.trim().split("\\s+")));

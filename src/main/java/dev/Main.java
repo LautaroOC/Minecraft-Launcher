@@ -7,8 +7,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        String minecraftVersionUrl = "https://piston-meta.mojang.com/v1/packages/0d9ace8a2ecfd1f4c782786f4b985a499240ff12/1.17.json";
         VersionDownloader versionDownloader = new VersionDownloader();
-        versionDownloader.downloadVersion();
+        versionDownloader.downloadVersion(minecraftVersionUrl);
         versionDownloader.createDirectories();
         versionDownloader.downloadClient();
         versionDownloader.downloadLibraries();
