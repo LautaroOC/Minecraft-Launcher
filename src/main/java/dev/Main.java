@@ -1,5 +1,8 @@
 package dev;
 
+import dev.manifest.Manifest;
+import dev.manifest.VersionManifest;
+
 import java.io.*;
 import java.net.URL;
 
@@ -7,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        String minecraftVersionUrl = "https://piston-meta.mojang.com/v1/packages/0d9ace8a2ecfd1f4c782786f4b985a499240ff12/1.17.json";
+        //String minecraftVersionUrl = "https://piston-meta.mojang.com/v1/packages/7a5aa5f3e3fba022efe0752660a5c7cd2dff2d16/1.7.json";
         VersionDownloader versionDownloader = new VersionDownloader();
         versionDownloader.downloadVersion(minecraftVersionUrl);
         versionDownloader.createDirectories();

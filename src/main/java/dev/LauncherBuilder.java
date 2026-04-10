@@ -50,27 +50,19 @@ public class LauncherBuilder {
             Path librariesPath = librariesDirPathRelative.resolve(library.getDownloads().getArtifact().getPath());
             String name = library.getName();
 
+            boolean isPlatformSpecific =
+                    name.contains("natives-")
+                            || name.contains("linux")
+                            || name.contains("macos")
+                            || name.contains("windows");
+
             if ((library.getRules() == null) ||
                     (library.getRules().getFirst().getAction().equals("allow")) &&
                             (library.getRules().getLast().getAction().equals("disallow")) &&
-                            (library.getRules().getLast().getOs().getName().equals("osx"))) {
+                            (library.getRules().getLast().getOs().getName().equals("osx")) &&
+                            !isPlatformSpecific) {
                 librariesClassPaths.add(librariesPath.toString());
             }
-            /*
-            for 1.21
-            else {
-                boolean isPlatformSpecific =
-                        name.contains("natives-")
-                                || name.contains("linux")
-                                || name.contains("macos")
-                                || name.contains("windows");
-
-                if (!isPlatformSpecific) {
-                    //CLASSPATH += ":" + librariePath.toString();
-                    librariesClassPaths.add(librariesPath.toString());
-                }
-            }
-             */
         }
         librariesClassPaths.add(clientVersionFilePath.toString());
         CLASSPATH = String.join(":", librariesClassPaths);
