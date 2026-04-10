@@ -34,7 +34,7 @@ public class Manifest {
        System.out.println("***********************************");
 
        while(true){
-           System.out.println("Select minecraft version (1.xx.xx):  ");
+           System.out.print("Select minecraft version (1.xx.xx):  ");
            String selectedVersion = scanner.nextLine().trim();
            for (Version version : releasedVersions) {
                if (version.getId().equals(selectedVersion)) {
@@ -54,5 +54,9 @@ public class Manifest {
             }
         }
         return versions;
+    }
+
+    public String getVersionUrlString(Version version) {
+       return version.getUrl();
     }
 }
