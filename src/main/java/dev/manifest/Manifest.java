@@ -13,6 +13,7 @@ import java.util.Scanner;
 public class Manifest {
     private VersionManifest versionManifest;
     private ObjectMapper objectMapper;
+    private Scanner scanner = new Scanner(System.in);
 
     public void prepareManifest() throws MalformedURLException, IOException {
         objectMapper = new ObjectMapper();
@@ -24,34 +25,32 @@ public class Manifest {
         }
     }
 
-    public String versionSelector() {
+    public Version versionSelector() {
        System.out.println("Minecraft versions: ");
-       List<String> releasedVersions = getReleasedVersions();
-       for (String version : releasedVersions) {
-           System.out.println(version);
+       List<Version> releasedVersions = getReleasedVersions();
+       for (Version version : releasedVersions) {
+           System.out.println(version.getId());
        }
        System.out.println("***********************************");
 
-       Scanner scanner = new Scanner(System.in);
        while(true){
            System.out.println("Select minecraft version (1.xx.xx):  ");
-           String selectedVersion = scanner.nextLine();
-
-               if (releasedVersions.contains(selectedVersion)) {
-                   return selectedVersion;
+           String selectedVersion = scanner.nextLine().trim();
+           for (Version version : releasedVersions) {
+               if (version.getId().equals(selectedVersion)) {
+                   return version;
                }
-               else {
-                   System.out.println("Select a correct version");
-               }
+           }
+           System.out.println("Select a correct version");
        }
     }
 
-    public List<String> getReleasedVersions() {
-        List<String> versions = new ArrayList<String>();
+    public List<Version> getReleasedVersions() {
+        List<Version> versions = new ArrayList<Version>();
 
         for (Version version : versionManifest.getVersions()) {
             if (version.getType().equals("release")) {
-                versions.add(version.getId());
+                versions.add(version);
             }
         }
         return versions;
