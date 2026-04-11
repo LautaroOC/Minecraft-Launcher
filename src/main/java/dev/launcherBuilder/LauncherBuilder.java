@@ -1,9 +1,9 @@
-package dev;
+package dev.launcherBuilder;
 
+import dev.VersionJson;
 import dev.arguments.game.Game;
 import dev.arguments.jvm.Jvm;
 import dev.libraries.Library;
-import dev.libraries.Rule;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -141,6 +141,11 @@ public class LauncherBuilder {
 
         int exitCode = process.waitFor();
         System.out.println("Minecraft exited with code " + exitCode);
+    }
+
+    public void buildAndRun() {
+       //Refactor de esta clase usando patron factory
+       //Una clase para representar armado del comando segun la version
     }
 
 }

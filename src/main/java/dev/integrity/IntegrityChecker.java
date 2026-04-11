@@ -1,5 +1,6 @@
-package dev;
+package dev.integrity;
 
+import dev.VersionJson;
 import dev.assetIndex.AssetObject;
 import dev.assetIndex.Assets;
 

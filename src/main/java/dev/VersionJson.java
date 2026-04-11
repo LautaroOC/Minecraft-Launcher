@@ -17,6 +17,7 @@ public class VersionJson {
     private ArrayList<Library> libraries;
     private String mainClass;
     private JavaVersion javaVersion;
+    private String minecraftArguments;
 
     public String getAssetsVersion() {
         return assets;
@@ -48,5 +49,9 @@ public class VersionJson {
 
     public AssetIndex getAssetIndex () {
         return assetIndex;
+    }
+
+    public String getMinecraftArguments() {
+        return minecraftArguments;
     }
 }

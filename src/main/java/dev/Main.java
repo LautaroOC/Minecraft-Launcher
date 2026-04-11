@@ -1,8 +1,8 @@
 package dev;
 
+import dev.launcherBuilder.LauncherBuilder;
 import dev.manifest.Manifest;
 import dev.manifest.Version;
-import dev.manifest.VersionManifest;
 
 import java.io.*;
 import java.net.URL;

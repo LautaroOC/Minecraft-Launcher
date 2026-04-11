@@ -189,38 +189,37 @@ public class VersionDownloader {
     }
 
     public void argumentsReformat() {
+            //Reformat of the Arguments
+            List<JsonNode> gameArgument = versionJson.getArguments().getGame();
 
-        //Reformat of the Arguments
-        List<JsonNode> gameArgument = versionJson.getArguments().getGame();
+            game = new Game();
 
-        game = new Game();
+            for (int i = 0; i < gameArgument.size(); i++) {
+                JsonNode object = gameArgument.get(i);
 
-        for (int i = 0; i < gameArgument.size(); i++) {
-            JsonNode object = gameArgument.get(i);
+                if (object.isTextual()) {
+                    String value = object.stringValue();
+                    game.addGameArgument(value);
+                } else if (object.isObject()) {
 
-            if (object.isTextual()) {
-                String value = object.stringValue();
-                game.addGameArgument(value);
-            } else if (object.isObject()) {
-
-                List<GameRule> rules = Arrays.asList(
-                        objectMapper.treeToValue(object.get("rules"), GameRule[].class)
-                );
-
-                List<String> finalValues = new ArrayList<>();
-                if (object.get("value").isArray()) {
-                    List<String> values = Arrays.asList(
-                            objectMapper.treeToValue(object.get("value"), String[].class)
+                    List<GameRule> rules = Arrays.asList(
+                            objectMapper.treeToValue(object.get("rules"), GameRule[].class)
                     );
-                    finalValues.addAll(values);
-                } else if (object.get("value").isTextual()) {
-                    String value = objectMapper.treeToValue(object.get("value"), String.class);
-                    finalValues.add(value);
-                }
 
-                game.addGameArgumentObject(new GameArgumentObject(rules, finalValues));
+                    List<String> finalValues = new ArrayList<>();
+                    if (object.get("value").isArray()) {
+                        List<String> values = Arrays.asList(
+                                objectMapper.treeToValue(object.get("value"), String[].class)
+                        );
+                        finalValues.addAll(values);
+                    } else if (object.get("value").isTextual()) {
+                        String value = objectMapper.treeToValue(object.get("value"), String.class);
+                        finalValues.add(value);
+                    }
+
+                    game.addGameArgumentObject(new GameArgumentObject(rules, finalValues));
+                }
             }
-        }
     }
 
     public void mapJvm() {

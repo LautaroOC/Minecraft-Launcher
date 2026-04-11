@@ -1,4 +1,4 @@
-package dev;
+package dev.integrity;
 
 public enum IssueType {
     MISSING_FILE,

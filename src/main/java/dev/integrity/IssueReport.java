@@ -1,4 +1,4 @@
-package dev;
+package dev.integrity;
 
 import java.util.ArrayList;
 
